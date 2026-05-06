@@ -1,0 +1,145 @@
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.header p {
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+}
+
+.form-card {
+  padding: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Prediction Result Styles */
+.result-card {
+  padding: 2rem;
+  text-align: center;
+  position: sticky;
+  top: 2rem;
+}
+
+.result-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  height: 200px;
+}
+
+.result-placeholder svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.result-content {
+  margin-top: 1rem;
+}
+
+.risk-meter {
+  width: 100%;
+  height: 12px;
+  background: var(--surface-border);
+  border-radius: 6px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.risk-fill {
+  height: 100%;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 6px;
+}
+
+.risk-low {
+  background: var(--success);
+}
+
+.risk-high {
+  background: var(--danger);
+}
+
+.result-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-low {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+}
+
+.status-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+.model-details {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.model-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.model-item:last-child {
+  border-bottom: none;
+}

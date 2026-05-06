@@ -1,0 +1,7 @@
+Terminal 1 (Backend):
+cd d:\mnt\medical-hypertension-classification
+python backend/main.py
+Terminal 2 (Frontend):
+cd d:\mnt\medical-hypertension-classification\frontend
+npm run dev
+Sau đó bấm vào đường link http://localhost:5173
