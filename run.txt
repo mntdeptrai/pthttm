@@ -5,3 +5,4 @@ Terminal 2 (Frontend):
 cd d:\mnt\medical-hypertension-classification\frontend
 npm run dev
 Sau đó bấm vào đường link http://localhost:5173
+pip install scikit-learn joblib

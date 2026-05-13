@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import joblib
 import pandas as pd
 import os
+import json
 
 app = FastAPI(title="Hypertension Prediction API")
 
@@ -23,11 +24,21 @@ MODELS_DIR = os.path.join(BASE_DIR, 'models')
 try:
     scaler = joblib.load(os.path.join(MODELS_DIR, 'scaler.joblib'))
     lr_model = joblib.load(os.path.join(MODELS_DIR, 'logistic_model.joblib'))
+    svm_model = joblib.load(os.path.join(MODELS_DIR, 'svm_model.joblib'))
     knn_model = joblib.load(os.path.join(MODELS_DIR, 'knn_model.joblib'))
+    
+    # Load training results if available
+    results_path = os.path.join(MODELS_DIR, 'training_results.json')
+    training_results = None
+    if os.path.exists(results_path):
+        with open(results_path, 'r', encoding='utf-8') as f:
+            training_results = json.load(f)
+    
     print("Models loaded successfully.")
 except Exception as e:
     print(f"Error loading models: {e}")
-    scaler, lr_model, knn_model = None, None, None
+    scaler, lr_model, svm_model, knn_model = None, None, None, None
+    training_results = None
 
 class PatientData(BaseModel):
     age: float
@@ -48,13 +59,20 @@ class PatientData(BaseModel):
 def read_root():
     return {"message": "Welcome to the Hypertension Prediction API"}
 
+@app.get("/model-info")
+def model_info():
+    """Return training results and model performance metrics."""
+    if training_results is None:
+        raise HTTPException(status_code=500, detail="Training results not available.")
+    return training_results
+
 @app.post("/predict")
 def predict_hypertension(data: PatientData):
-    if not scaler or not lr_model or not knn_model:
+    if not scaler or not lr_model or not svm_model or not knn_model:
         raise HTTPException(status_code=500, detail="Models are not loaded on the server.")
     
     # Convert input data to DataFrame for scaler
-    df_input = pd.DataFrame([data.dict()])
+    df_input = pd.DataFrame([data.model_dump()])
     
     try:
         # Scale the features
@@ -64,6 +82,10 @@ def predict_hypertension(data: PatientData):
         lr_pred = lr_model.predict(X_scaled)[0]
         lr_prob = lr_model.predict_proba(X_scaled)[0][1] if hasattr(lr_model, "predict_proba") else None
         
+        # Predict with SVM
+        svm_pred = svm_model.predict(X_scaled)[0]
+        svm_prob = svm_model.predict_proba(X_scaled)[0][1] if hasattr(svm_model, "predict_proba") else None
+        
         # Predict with KNN
         knn_pred = knn_model.predict(X_scaled)[0]
         knn_prob = knn_model.predict_proba(X_scaled)[0][1] if hasattr(knn_model, "predict_proba") else None
@@ -72,12 +94,17 @@ def predict_hypertension(data: PatientData):
             "logistic_regression": {
                 "prediction": int(lr_pred),
                 "probability": float(lr_prob) if lr_prob is not None else None,
-                "status": "High Risk" if lr_pred == 1 else "Low Risk"
+                "status": "Nguy cơ cao (Positive)" if lr_pred == 1 else "Nguy cơ thấp (Negative)"
+            },
+            "svm": {
+                "prediction": int(svm_pred),
+                "probability": float(svm_prob) if svm_prob is not None else None,
+                "status": "Nguy cơ cao (Positive)" if svm_pred == 1 else "Nguy cơ thấp (Negative)"
             },
             "knn": {
                 "prediction": int(knn_pred),
                 "probability": float(knn_prob) if knn_prob is not None else None,
-                "status": "High Risk" if knn_pred == 1 else "Low Risk"
+                "status": "Nguy cơ cao (Positive)" if knn_pred == 1 else "Nguy cơ thấp (Negative)"
             }
         }
     except Exception as e:
