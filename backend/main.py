@@ -60,6 +60,48 @@ class PatientData(BaseModel):
 def read_root():
     return {"message": "Welcome to the Hypertension Prediction API"}
 
+def calculate_guideline_risk(data: PatientData):
+    """Calculate risk stratification based on Guideline 2.5 (Table 2.5)."""
+    bp = data.trestbps
+    risk_factors = [
+        data.age > 55,
+        data.chol > 200,
+        data.fbs == 1,
+        data.ca > 0,
+        data.thal <= 2 # 1 or 2 is risk in the updated scale
+    ]
+    rf_count = sum(risk_factors)
+    
+    # Blood pressure levels
+    bp_level = 0
+    if bp >= 180: bp_level = 4
+    elif bp >= 160: bp_level = 3
+    elif bp >= 140: bp_level = 2
+    elif bp >= 130: bp_level = 1
+    
+    # Simplified Guideline Matrix (0: Low, 1: Medium, 2: High, 3: Very High)
+    matrix = [
+        [0, 0, 0, 1, 2], # 0 risk factors
+        [0, 0, 1, 1, 3], # 1-2 risk factors
+        [1, 2, 2, 2, 3], # >= 3 risk factors or diabetes/organ damage
+        [3, 3, 3, 3, 3]  # Established disease (handled by ca/thal logic)
+    ]
+    
+    row = 0
+    if data.ca > 0 or data.thal == 1: row = 3
+    elif rf_count >= 3 or data.fbs == 1: row = 2
+    elif rf_count >= 1: row = 1
+    
+    risk_level = matrix[row][bp_level]
+    labels = ["Nguy cơ thấp", "Nguy cơ trung bình", "Nguy cơ cao", "Nguy cơ rất cao"]
+    
+    return {
+        "level": risk_level,
+        "label": labels[risk_level],
+        "factors_count": rf_count,
+        "bp_level": bp_level
+    }
+
 @app.get("/model-info")
 def model_info():
     """Return training results and model performance metrics."""
@@ -75,8 +117,12 @@ def predict_hypertension(data: PatientData):
     # Convert input data to DataFrame for scaler
     df_input = pd.DataFrame([data.model_dump()])
     
+    # [NEW] ADD GUIDELINE RISK AS A FEATURE
+    guideline_info = calculate_guideline_risk(data)
+    df_input['guideline_risk'] = guideline_info['level']
+    
     try:
-        # Scale the features
+        # Scale the features (now 14 features)
         X_scaled = scaler.transform(df_input)
         
         # Predict with Logistic Regression
@@ -95,27 +141,48 @@ def predict_hypertension(data: PatientData):
         rf_pred = rf_model.predict(X_scaled)[0]
         rf_prob = rf_model.predict_proba(X_scaled)[0][1] if hasattr(rf_model, "predict_proba") else None
         
+        # Calculate Guideline 2.5 Risk
+        guideline_info = calculate_guideline_risk(data)
+        
+        def map_risk_tier(prob_1, guideline_level):
+            # Class 0 is Risk, Class 1 is Healthy. risk probability = 1 - prob_1
+            prob_risk = 1 - prob_1
+            
+            # 1. VERY HIGH RISK: Prob > 85% or Guideline Very High
+            if prob_risk > 0.85 or guideline_level >= 3: return "Nguy cơ rất cao"
+            
+            # 2. HIGH RISK: Prob > 65% or Guideline High
+            if prob_risk > 0.65 or guideline_level >= 2: return "Nguy cơ cao"
+            
+            # 3. MEDIUM RISK: Prob > 40% or Guideline Medium
+            # If guideline says Low (0), we need a stronger AI signal (>45%) to call it Medium
+            if guideline_level >= 1 or prob_risk > 0.45: return "Nguy cơ trung bình"
+            
+            # 4. LOW RISK / NORMAL
+            return "Bình thường (Thấp)"
+
         return {
             "input_data": data.model_dump(),
+            "guideline_2_5": guideline_info,
             "logistic_regression": {
                 "prediction": int(lr_pred),
                 "probability": float(lr_prob) if lr_prob is not None else None,
-                "status": "Bình thường (Healthy)" if lr_pred == 1 else "Nguy cơ cao (High Risk)"
+                "status": map_risk_tier(lr_prob, guideline_info['level'])
             },
             "svm": {
                 "prediction": int(svm_pred),
                 "probability": float(svm_prob) if svm_prob is not None else None,
-                "status": "Bình thường (Healthy)" if svm_pred == 1 else "Nguy cơ cao (High Risk)"
+                "status": map_risk_tier(svm_prob, guideline_info['level'])
             },
             "knn": {
                 "prediction": int(knn_pred),
                 "probability": float(knn_prob) if knn_prob is not None else None,
-                "status": "Bình thường (Healthy)" if knn_pred == 1 else "Nguy cơ cao (High Risk)"
+                "status": map_risk_tier(knn_prob, guideline_info['level'])
             },
             "random_forest": {
                 "prediction": int(rf_pred),
                 "probability": float(rf_prob) if rf_prob is not None else None,
-                "status": "Bình thường (Healthy)" if rf_pred == 1 else "Nguy cơ cao (High Risk)"
+                "status": map_risk_tier(rf_prob, guideline_info['level'])
             }
         }
     except Exception as e:

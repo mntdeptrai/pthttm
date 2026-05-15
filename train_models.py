@@ -37,8 +37,44 @@ def main():
 
     # Separate features and target
     X = df.drop('target', axis=1)
+    
+    # [NEW] ADD MEDICAL GUIDELINE FEATURE
+    print("  Adding Guideline 2.5 feature...")
+    def get_guideline_risk_level(row):
+        bp = row['trestbps']
+        risk_factors = [
+            row['age'] > 55,
+            row['chol'] > 200,
+            row['fbs'] == 1,
+            row['ca'] > 0,
+            row['thal'] <= 2 # 0, 1, 2 are risk factors in our scale
+        ]
+        rf_count = sum(risk_factors)
+        
+        bp_level = 0
+        if bp >= 180: bp_level = 4
+        elif bp >= 160: bp_level = 3
+        elif bp >= 140: bp_level = 2
+        elif bp >= 130: bp_level = 1
+        
+        matrix = [
+            [0, 0, 0, 1, 2], # 0 rf
+            [0, 0, 1, 1, 3], # 1-2 rf
+            [1, 2, 2, 2, 3], # >= 3 rf or diabetes/damage
+            [3, 3, 3, 3, 3]  # established disease
+        ]
+        
+        row_idx = 0
+        if row['ca'] > 0 or row['thal'] <= 1: row_idx = 3 # 0 or 1 is Scar
+        elif rf_count >= 3 or row['fbs'] == 1: row_idx = 2
+        elif rf_count >= 1: row_idx = 1
+        
+        return matrix[row_idx][bp_level]
+
+    X['guideline_risk'] = X.apply(get_guideline_risk_level, axis=1)
+    
     y = df['target']
-    print(f"  Features: {X.shape[1]} columns")
+    print(f"  Features: {X.shape[1]} columns (including guideline_risk)")
     print(f"  Target distribution: {dict(y.value_counts())}")
 
     # ============================================================
