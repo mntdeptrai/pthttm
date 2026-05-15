@@ -3,18 +3,24 @@ import pandas as pd
 sheet_id = '1ZfnNy48RwtK0D_i_B3CmoXUKcpIBt8rBfdBNqzypEko'
 gid = '695684010'
 data_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}'
+
 try:
+  # Try loading from the Google Sheet link first
+  print(f"Attempting to load data from Google Sheets...")
   df = pd.read_csv(data_url)
-  print("Successfully loaded the data.")
-  print(df.info())
-  print(df.describe())
-  print(df.isnull().sum())
+  print("Successfully loaded data from Google Sheets.")
 except Exception as e:
-  print(f"An error occurred while loading the data: {e}")
-# Fill missing numerical values with the mean
-for col in df.select_dtypes(include=['number']):
-  if df[col].isnull().any():
-    df[col] = df[col].fillna(df[col].mean())
+  print(f"Could not load from link ({e}). Falling back to local 'data_cleaned.csv'...")
+  try:
+    df = pd.read_csv('data_cleaned.csv')
+    print("Successfully loaded preprocessed data from local file.")
+  except Exception as e2:
+    print(f"Error: Could not load local file either. {e2}")
+
+if 'df' in locals():
+  print(df.info())
+  print(df.isnull().sum())
+# Data is already preprocessed (duplicates removed, missing values filled)
 df.info()
 df.describe()
 df.isnull().sum()

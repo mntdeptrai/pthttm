@@ -101,6 +101,10 @@
   background: var(--danger);
 }
 
+.risk-warning {
+  background: #f1c40f;
+}
+
 .result-title {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
@@ -125,6 +129,11 @@
   color: var(--danger);
 }
 
+.status-warning {
+  background: rgba(241, 196, 15, 0.2);
+  color: #f1c40f;
+}
+
 .model-details {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
@@ -142,4 +151,11 @@
 
 .model-item:last-child {
   border-bottom: none;
+}
+
+.status-danger {
+  background: rgba(153, 27, 27, 0.3);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
 }

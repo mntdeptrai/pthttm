@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     confusion_matrix, accuracy_score, precision_score,
     recall_score, f1_score, classification_report
@@ -21,8 +22,8 @@ def main():
     print("HYPERTENSION PREDICTION - MODEL TRAINING")
     print("=" * 60)
 
-    print("\n[1/6] Loading data from local CSV...")
-    df = pd.read_csv('data.csv')
+    print("\n[1/6] Loading preprocessed data from local CSV...")
+    df = pd.read_csv('data_cleaned.csv')
     print(f"  Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
     print(f"  Columns: {list(df.columns)}")
 
@@ -31,13 +32,8 @@ def main():
     # ============================================================
     print("\n[2/6] Preprocessing data...")
 
-    # Fill missing values with mean (column 'sex' has 25 nulls)
-    missing_before = df.isnull().sum().sum()
-    for col in df.select_dtypes(include=['number']).columns:
-        if df[col].isnull().any():
-            print(f"  Filling {df[col].isnull().sum()} missing values in '{col}' with mean ({df[col].mean():.4f})")
-            df[col] = df[col].fillna(df[col].mean())
-    print(f"  Missing values: {missing_before} -> {df.isnull().sum().sum()}")
+    # Data is already preprocessed (duplicates removed, missing values filled with mode/mean)
+    print(f"  Missing values: {df.isnull().sum().sum()}")
 
     # Separate features and target
     X = df.drop('target', axis=1)
@@ -73,9 +69,10 @@ def main():
     print("\n[5/6] Training models...")
 
     classifiers = {
-        "Logistic Regression": LogisticRegression(max_iter=1000),
-        "SVM": SVC(random_state=50, probability=True),
-        "KNN": KNeighborsClassifier(n_neighbors=1),
+        "Logistic Regression": LogisticRegression(max_iter=1000, class_weight='balanced'),
+        "SVM": SVC(random_state=50, probability=True, class_weight='balanced'),
+        "KNN": KNeighborsClassifier(n_neighbors=5),
+        "Random Forest": RandomForestClassifier(n_estimators=100, random_state=50, class_weight='balanced')
     }
 
     results = {}
@@ -86,6 +83,9 @@ def main():
 
         # Evaluate on validation set
         y_val_pred = clf.predict(X_val)
+        print(f"    [Validation Report] {name}:")
+        print(classification_report(y_val, y_val_pred))
+        
         val_acc = accuracy_score(y_val, y_val_pred)
         val_prec = precision_score(y_val, y_val_pred)
         val_rec = recall_score(y_val, y_val_pred)
@@ -138,6 +138,7 @@ def main():
         "Logistic Regression": "logistic_model.joblib",
         "SVM": "svm_model.joblib",
         "KNN": "knn_model.joblib",
+        "Random Forest": "rf_model.joblib",
     }
 
     for name, clf in classifiers.items():

@@ -1,0 +1,30 @@
+{
+  "guideline_name": "Bảng 2.5: Phân tầng nguy cơ tim mạch",
+  "source": "Phân tầng nguy cơ theo độ tăng huyết áp",
+  "blood_pressure_levels": {
+    "normal": {"sbp_range": [120, 129], "dbp_range": [80, 84]},
+    "pre_hypertension": {"sbp_range": [130, 139], "dbp_range": [85, 89]},
+    "grade_1": {"sbp_range": [140, 159], "dbp_range": [90, 99]},
+    "grade_2": {"sbp_range": [160, 179], "dbp_range": [100, 109]},
+    "grade_3": {"sbp_range": [180, 999], "dbp_range": [110, 999]}
+  },
+  "risk_factors": [
+    "Tuổi (Nam > 55, Nữ > 65)",
+    "Hút thuốc lá",
+    "Rối loạn lipid máu (Cholesterol > 200 mg/dl)",
+    "Đái tháo đường (FBS > 120 mg/dl)",
+    "Tiền sử gia đình mắc bệnh tim mạch sớm"
+  ],
+  "organ_damage": [
+    "Hẹp mạch máu chính (CA > 0)",
+    "Phì đại thất trái (ECG abnormal)",
+    "Bệnh thận mạn tính",
+    "Khiếm khuyết Thallium (Thal <= 2: 1 hoặc 2)"
+  ],
+  "risk_matrix": {
+    "no_risk_factors": ["Tối thiểu", "Tối thiểu", "Nguy cơ thấp", "Nguy cơ trung bình", "Nguy cơ cao"],
+    "1_2_risk_factors": ["Nguy cơ thấp", "Nguy cơ thấp", "Nguy cơ trung bình", "Nguy cơ trung bình", "Nguy cơ rất cao"],
+    "ge_3_factors_or_damage": ["Nguy cơ trung bình", "Nguy cơ cao", "Nguy cơ cao", "Nguy cơ cao", "Nguy cơ rất cao"],
+    "established_disease": ["Nguy cơ rất cao", "Nguy cơ rất cao", "Nguy cơ rất cao", "Nguy cơ rất cao", "Nguy cơ rất cao"]
+  }
+}

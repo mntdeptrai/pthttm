@@ -67,7 +67,7 @@ function App() {
   const formFields = [
     { name: 'age', label: 'Tuổi', type: 'number', placeholder: 'VD: 45' },
     { name: 'sex', label: 'Giới tính (1: Nam, 0: Nữ)', type: 'number', placeholder: '0 hoặc 1', min: "0", max: "1" },
-    { name: 'cp', label: 'Loại đau ngực (0-3)', type: 'number', placeholder: '0, 1, 2, hoặc 3', min: "0", max: "3" },
+    { name: 'cp', label: 'Loại đau ngực (0-3: 0 là điển hình, 3 là không triệu chứng)', type: 'number', placeholder: '0, 1, 2, hoặc 3', min: "0", max: "3" },
     { name: 'trestbps', label: 'Huyết áp lúc nghỉ (mmHg)', type: 'number', placeholder: 'VD: 120' },
     { name: 'chol', label: 'Cholesterol (mg/dl)', type: 'number', placeholder: 'VD: 200' },
     { name: 'fbs', label: 'Đường huyết đói > 120 mg/dl (1: Đúng, 0: Sai)', type: 'number', placeholder: '0 hoặc 1', min: "0", max: "1" },
@@ -77,14 +77,14 @@ function App() {
     { name: 'oldpeak', label: 'Độ chênh ST', type: 'number', step: "0.1", placeholder: 'VD: 1.5' },
     { name: 'slope', label: 'Độ dốc đoạn ST (0-2)', type: 'number', placeholder: '0, 1, hoặc 2', min: "0", max: "2" },
     { name: 'ca', label: 'Số mạch máu chính (0-4)', type: 'number', placeholder: '0, 1, 2, 3, hoặc 4', min: "0", max: "4" },
-    { name: 'thal', label: 'Kết quả Thallium (1-3)', type: 'number', placeholder: '1, 2, hoặc 3', min: "1", max: "3" }
+    { name: 'thal', label: 'Kết quả Thallium (1-3: 3: Bình thường, 2: Thiếu máu, 1: Sẹo/Chết)', type: 'number', placeholder: '1, 2, hoặc 3', min: "1", max: "3" }
   ];
 
   return (
     <div className="app-container">
       <header className="header animate-fade-in">
-        <h1 className="text-gradient">Chẩn Đoán Tăng Huyết Áp AI</h1>
-        <p>Hệ thống sử dụng mô hình học máy để hỗ trợ đánh giá nguy cơ mắc bệnh dựa trên 13 chỉ số y tế lâm sàng.</p>
+        <h1 className="text-gradient">Dự Đoán Nguy Cơ Tim Mạch</h1>
+        <p>Hệ thống sử dụng các mô hình học máy để hỗ trợ đánh giá nguy cơ mắc bệnh dựa trên 13 chỉ số y tế lâm sàng.</p>
       </header>
 
       <main className="main-content">

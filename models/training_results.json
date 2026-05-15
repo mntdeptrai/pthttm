@@ -1,34 +1,34 @@
 {
   "Logistic Regression": {
     "validation": {
-      "accuracy": 0.8629611883085769,
-      "precision": 0.8405854430379747,
-      "recall": 0.9263295553618134,
-      "f1_score": 0.8813770219825798,
+      "accuracy": 0.8394825107810254,
+      "precision": 0.8360927152317881,
+      "recall": 0.8805579773321709,
+      "f1_score": 0.8577494692144374,
       "confusion_matrix": [
         [
-          1477,
-          403
+          1484,
+          396
         ],
         [
-          169,
-          2125
+          274,
+          2020
         ]
       ]
     },
     "test": {
-      "accuracy": 0.8686984857197623,
-      "precision": 0.8407803650094399,
-      "recall": 0.9372150122763943,
-      "f1_score": 0.8863824846574888,
+      "accuracy": 0.8443549932911635,
+      "precision": 0.8376946008612123,
+      "recall": 0.8870571729217819,
+      "f1_score": 0.8616695059625213,
       "confusion_matrix": [
         [
-          1860,
-          506
+          1876,
+          490
         ],
         [
-          179,
-          2672
+          322,
+          2529
         ]
       ]
     }
@@ -68,6 +68,40 @@
     }
   },
   "KNN": {
+    "validation": {
+      "accuracy": 0.9997604216578821,
+      "precision": 1.0,
+      "recall": 0.9995640802092415,
+      "f1_score": 0.999781992587748,
+      "confusion_matrix": [
+        [
+          1880,
+          0
+        ],
+        [
+          1,
+          2293
+        ]
+      ]
+    },
+    "test": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confusion_matrix": [
+        [
+          2366,
+          0
+        ],
+        [
+          0,
+          2851
+        ]
+      ]
+    }
+  },
+  "Random Forest": {
     "validation": {
       "accuracy": 1.0,
       "precision": 1.0,
