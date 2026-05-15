@@ -73,35 +73,62 @@ export default function PredictionResult({ result, loading, error }) {
   }
 
 
+  // =============================================
+  // GUIDELINE 2.5 INTEGRATION (from Backend)
+  // =============================================
+  const guidelineRisk = result.guideline_2_5 ? {
+    ...result.guideline_2_5,
+    className: ["status-low", "status-warning", "status-high", "status-danger"][result.guideline_2_5.level]
+  } : null;
 
-  // Calculate realistic average probability
+  // Check if AI models' status texts agree with Guideline
+  const modelStatuses = models.map(m => m.status || "");
+  const modelsAgreeWithGuideline = guidelineRisk && modelStatuses.every(s => {
+    if (guidelineRisk.level === 0) return s.includes("Bình thường");
+    if (guidelineRisk.level === 1) return s.includes("trung bình");
+    if (guidelineRisk.level === 2) return s.includes("cao") && !s.includes("rất cao");
+    if (guidelineRisk.level === 3) return s.includes("rất cao");
+    return false;
+  });
+
+  // Override status based on Guideline if needed
+  if (guidelineRisk && guidelineRisk.level >= 1) {
+    if (!isHighRisk || guidelineRisk.level >= 2) {
+      statusText = guidelineRisk.label.toUpperCase();
+      statusClass = guidelineRisk.className;
+      isHighRisk = guidelineRisk.level >= 2;
+    }
+  }
+
+  // =============================================
+  // CONFIDENCE CALCULATION
+  // =============================================
   const avgRiskProb = models.reduce((acc, m) => {
-    // Probability of class 0 (Risk)
-    // m.probability is probability of predicted class. 
-    // If prediction is 0, risk prob = m.probability. If prediction is 1, risk prob = 1 - m.probability
     const p = m.prediction === 0 ? (m.probability || 0.8) : (1 - (m.probability || 0.8));
     return acc + p;
   }, 0) / totalModels;
 
-  // Confidence is the probability of the FINAL DECISION
   let finalConfidence = isHighRisk ? avgRiskProb : (1 - avgRiskProb);
-  
-  // If overridden by medical guidelines, the guideline itself provides the high confidence
-  if (isGuidelineOverride) {
-    // Guidelines have 100% clinical authority in this context, 
-    // but we mix it with AI doubt to show "combined" confidence
-    finalConfidence = 0.75 + (finalConfidence * 0.2); 
-  }
-
-  const rawProb = finalConfidence * 100;
-  let displayedProbability = Math.round(rawProb * 10) / 10;
-  
-  // Penalty for model conflict (already implemented)
   let confidenceMessage = "Độ tin cậy tổng hợp";
-  if (isConflicting && !isGuidelineOverride) {
-    displayedProbability = Math.min(displayedProbability, 75); // Cap confidence if models disagree
+
+  if (modelsAgreeWithGuideline) {
+    // AI and Guideline AGREE → High confidence!
+    finalConfidence = Math.max(finalConfidence, 0.85);
+    confidenceMessage = "Độ tin cậy tổng hợp";
+    isConflicting = false;
+    isGuidelineOverride = false;
+  } else if (guidelineRisk && guidelineRisk.level >= 1 && healthyCount === totalModels) {
+    // AI says healthy (prediction=1) but Guideline says risk → Override with explanation
+    isGuidelineOverride = true;
+    finalConfidence = 0.75 + (finalConfidence * 0.2);
+    confidenceMessage = "Độ tin cậy tổng hợp (Phác đồ ghi đè)";
+  } else if (isConflicting) {
+    // Models genuinely disagree with each other
+    finalConfidence = Math.min(finalConfidence, 0.75);
     confidenceMessage = "⚠️ Độ tin cậy thấp do các mô hình không đồng nhất";
   }
+
+  let displayedProbability = Math.round(finalConfidence * 1000) / 10;
 
   const hasCriticalSymptoms = result.input_data && (
     result.input_data.cp === 0 || 
@@ -110,33 +137,7 @@ export default function PredictionResult({ result, loading, error }) {
     result.input_data.thal <= 2
   );
 
-  // Use the official Guideline 2.5 Risk from the Backend
-  const guidelineRisk = result.guideline_2_5 ? {
-    ...result.guideline_2_5,
-    className: ["status-low", "status-warning", "status-high", "status-danger"][result.guideline_2_5.level]
-  } : null;
-
-  // Final status override based on Guideline 2.5
-  if (guidelineRisk && guidelineRisk.level >= 1) {
-    // If AI said Healthy but Guideline says Risk, we OVERRIDE
-    if (!isHighRisk || guidelineRisk.level >= 2) {
-      statusText = guidelineRisk.label.toUpperCase();
-      statusClass = guidelineRisk.className;
-      
-      // Update risk state for other UI components
-      const previousHighRisk = isHighRisk;
-      isHighRisk = guidelineRisk.level >= 2;
-      
-      if (!previousHighRisk && healthyCount === totalModels) {
-        isGuidelineOverride = true;
-      } else if (guidelineRisk.level >= 1) {
-        isConflicting = true;
-      }
-    }
-  }
-
-
-  if (hasCriticalSymptoms && !isHighRisk) {
+  if (hasCriticalSymptoms && !isHighRisk && !modelsAgreeWithGuideline) {
     displayedProbability = Math.min(displayedProbability, 45);
     confidenceMessage = "⚠️ Độ tin cậy thấp do mâu thuẫn lâm sàng";
   }

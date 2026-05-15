@@ -83,8 +83,8 @@ function App() {
   return (
     <div className="app-container">
       <header className="header animate-fade-in">
-        <h1 className="text-gradient">Dự Đoán Nguy Cơ Tim Mạch</h1>
-        <p>Hệ thống sử dụng các mô hình học máy để hỗ trợ đánh giá nguy cơ mắc bệnh dựa trên 13 chỉ số y tế lâm sàng.</p>
+        <h1 className="text-gradient">Dự Đoán Bệnh Tăng Huyết Áp</h1>
+        <p>Hệ thống sử dụng các mô hình học máy kết hợp Phác đồ Y khoa (Bảng 2.5) để hỗ trợ đánh giá nguy cơ tăng huyết áp dựa trên 13 chỉ số lâm sàng.</p>
       </header>
 
       <main className="main-content">
